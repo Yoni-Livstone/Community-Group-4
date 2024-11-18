@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from itertools import combinations
 from pulp import *
 
@@ -18,25 +19,15 @@ def phaseIpreferences(player, community, global_random):
     in the list has the first index task [index in the community.tasks list] and the second index as the partner id'''
     list_choices = []
 
-    num_members = len(community.members)
-
-    personal_threshold = 0 # vary this in later stages
-
-    for i, task in enumerate(community.tasks):
-        for partner_id in range(num_members):
-            if partner_id == player.id:
-                continue
-            partner = community.members[partner_id]
-            energy_cost = sum([max(task[j] - max(player.abilities[j], partner.abilities[j]), 0) for j in range(len(player.abilities))])
-
-            if (energy_cost / 2) <= player.energy - personal_threshold:
-                list_choices.append([i, partner_id])
-
     # Evaluate need for sacrifice
     # [TODO]
 
     # Mixed-integer linear program
-    # [TODO]
+    assignments = optimize_task_assignments(community)
+    for assignment in assignments:
+        if len(assignment[0]) == 2 and player.id in assignment[0]:
+            partner = [p for p in assignment[0] if p != player.id][0]
+            list_choices.append([assignment[1], partner.id])
 
     return list_choices
 
@@ -45,26 +36,15 @@ def phaseIIpreferences(player, community, global_random):
     '''Return a list of tasks for the particular player to do individually'''
     # logging.debug(f"Player energy: {player.energy}")
     bids = []
-    pain = 2
-    if player.energy < pain:
-        return bids
-    
-    num_abilities = len(player.abilities)
-
-    for i, task in enumerate(community.tasks):
-        energy_cost = sum([max(task[j] - player.abilities[j], 0) for j in range(num_abilities)])
-        # logging.debug(f"Energy cost: {energy_cost}")
-        if energy_cost <= pain:
-            bids.append(i)
-            # logging.debug(f"Task {i} is being bid on")
-            # logging.debug(f"Player energy: {player.energy}")
-            # logging.debug(f"Energy cost: " + str(energy_cost))
 
     # Execute sacrifice
     # [TODO]
 
-    # MILP
-    # [TODO]
+    # Mixed-integer linear program
+    assignments = optimize_task_assignments(community)
+    for assignment in assignments:
+        if len(assignment[0]) == 1 and player.id in assignment[0]:
+            bids.append(assignment[1])
 
     return bids
 
@@ -197,17 +177,18 @@ def calculate_cost_matrix(community):
     # Individual costs
     cost_matrix_individual = {}
     for member in members:
-        for task in tasks:
-            cost = max(0, task - member.ability)  # Energy cost based on ability
-            cost_matrix_individual[(member.id, task)] = cost
+        for t, task in enumerate(tasks):
+            cost = sum([max(0, task[i] - member.abilities[i]) for i in range(len(member.abilities))])
+            cost_matrix_individual[(member.id, t)] = cost
 
     # Pair costs
     cost_matrix_pairs = {}
-    for member1, member2 in combinations(members, 2):  # All possible pairs
-        for task in tasks:
-            combined_ability = max(member1.ability, member2.ability)
-            cost = max(0, task - combined_ability) / 2  # Halve cost for shared work
-            cost_matrix_pairs[(member1.id, member2.id, task)] = cost
+    for member1, member2 in combinations(members, 2):
+        for t, task in enumerate(tasks):
+            combined_abilities = np.maximum(member1.abilities, member2.abilities)
+            cost = sum([max(0, task[i] - combined_abilities[i])
+                        for i in range(len(combined_abilities))]) / 2  # Half cost for shared work
+            cost_matrix_pairs[(member1.id, member2.id, t)] = cost
 
     return cost_matrix_individual, cost_matrix_pairs
 
