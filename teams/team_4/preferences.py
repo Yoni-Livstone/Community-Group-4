@@ -150,7 +150,7 @@ def optimize_task_assignments(community):
 
     # Extract results
     assignments = []
-    for t in tasks:
+    for t in range(len(tasks)):
         for m in members:
             if x_individual[m.id, t].varValue == 1:
                 assignments.append(([m.id], t))
