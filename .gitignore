@@ -3,3 +3,4 @@ __pycache__
 .idea
 .git
 pyproject.toml
+__pycache__/global_random.cpython-312.pyc
