@@ -1,0 +1,9 @@
+All players have been distributed among groups g1 to g10 with the distribution provided
+Player distribution:
+Group 5: 45 players
+  0%|          | 0/100 [00:00<?, ?it/s]  1%|          | 1/100 [00:15<25:42, 15.58s/it]No active players
+  1%|          | 1/100 [00:15<25:42, 15.58s/it]
+Total tasks completed: 45
+Average number of tasks per turn: 0.45
+Average time taken for giving phase I preferences: 0.04 seconds
+Average time taken for giving phase II preferences: 0.29 seconds
