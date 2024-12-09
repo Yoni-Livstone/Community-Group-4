@@ -49,6 +49,7 @@ def phaseIpreferences(player, community, global_random):
 
     # If time is scarcer than energy, use simple strategy
     if average_difficulty(community) < average_ability(community) * DIFFICULTY_ABILITY_RATIO:
+        print("EASY TASKS...")
         for t in range(len(list_of_ranked_assignments)):
             individual_cost = cost_matrix_individual[(player.id, t)]
             for assignment in list_of_ranked_assignments[t]:
@@ -58,6 +59,8 @@ def phaseIpreferences(player, community, global_random):
                         if individual_cost + PAIRING_ADVANTAGE > assignment[1]:
                             list_choices.append([t, partner_id])
         return list_choices
+
+    print("HARD TASKS...")
 
     for t in range(len(list_of_ranked_assignments)):
         # Exhausting tasks (energy required >= 20)
